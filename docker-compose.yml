@@ -12,8 +12,8 @@ services:
         volumes:
             - ./project/postgres:/appdb
         environment:
-            POSTGRES_USER: appcrud
-            POSTGRES_PASSWORD: "1234321"
+            POSTGRES_USER: admin_
+            POSTGRES_PASSWORD: "pnEBndQfazhth5K"
             POSTGRES_DB: messages
             PGDATA: /appdb
     application:
