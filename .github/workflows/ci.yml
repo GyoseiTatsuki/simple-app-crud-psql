@@ -46,7 +46,7 @@ jobs:
         run: |
           echo '#!/bin/bash' > deploy.sh
           echo 'echo "Logging into Docker..."' >> deploy.sh
-          echo 'echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin' >> deploy.sh
+          echo 'docker login -u $DOCKER_USERNAME -p $DOCKER_TOKEN' >> deploy.sh
           echo 'sudo docker pull "$DOCKER_USERNAME/myapp:latest"' >> deploy.sh
           echo 'sudo docker stop myapp || true' >> deploy.sh
           echo 'sudo docker rm myapp || true' >> deploy.sh
