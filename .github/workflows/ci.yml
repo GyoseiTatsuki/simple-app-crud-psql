@@ -58,7 +58,7 @@ jobs:
         env:
           LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN-i ~/.ssh/id_rsa admin_@4.233.150.126 'bash /tmp/deploy.sh'
+        run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa admin_@4.233.150.126 'bash /tmp/deploy.sh'
 
 
     #   - name: Deploy to remote server
