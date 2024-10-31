@@ -43,22 +43,17 @@ jobs:
 
       - name: Connect to VM via SSH
         run: |
-           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pem admin_@4.233.150.126 << 'EOF'
-            echo 'Connected to VM!'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pem admin_@4.233.150.126 "echo 'Connected to VM!'"
             echo "Logging into Docker..."
-            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_TOKEN" || { echo 'Docker login failed'; exit 1; }
+            docker login -u $DOCKER_USERNAME -p $DOCKER_TOKEN
             echo "Logging into Docker OK"
-            echo "Pulling the latest image..."
-            docker pull "$DOCKER_USERNAME/myapp:latest"
-            if [ $(docker ps -a -q -f name=myapp | wc -l) -gt 0 ]; then
-            echo "Stopping and removing existing container..."
+            docker pull $DOCKER_USERNAME/myapp:latest
+            echo "PULL"
             docker stop myapp || true
+            echo "STOP"
             docker rm myapp || true
-            else
-             echo "No existing container named 'myapp' found."
-            fi
-            echo "Running the new container..."
-            docker run -d --name myapp -p 8088:8088 "$DOCKER_USERNAME/myapp:latest"
+            echo "RM"
+            docker run -d --name myapp -p 8088:8088 $DOCKER_USERNAME/myapp:latest
 
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
