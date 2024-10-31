@@ -52,13 +52,13 @@ jobs:
           echo 'docker rm myapp || true' >> deploy.sh
           echo 'docker run -d --name myapp -p 8088:8088 $DOCKER_USERNAME/myapp:latest' >> deploy.sh
           chmod +x deploy.sh
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh admin@4.233.150.126:/tmp/deploy.sh
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh admin_@4.233.150.126:/tmp/deploy.sh
 
       - name: Run Deploy Script on Remote Server
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa admin@4.233.150.126 'bash /tmp/deploy.sh'
+        run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa admin_@4.233.150.126 'bash /tmp/deploy.sh'
 
 
     #   - name: Deploy to remote server
