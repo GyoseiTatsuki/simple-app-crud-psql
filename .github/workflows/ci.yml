@@ -43,7 +43,7 @@ jobs:
 
       - name: Connect to VM via SSH
         run: |
-          ssh -i ~/.ssh/id_rsa.pem admin_@4.233.150.126 "echo 'Connected to VM!'"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pem admin_@4.233.150.126 "echo 'Connected to VM!'"
 
     #   - name: Deploy to remote server
     #     uses: appleboy/ssh-action@v0.1.4
