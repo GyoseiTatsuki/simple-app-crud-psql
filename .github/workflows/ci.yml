@@ -52,7 +52,7 @@ jobs:
             docker pull $DOCKER_USERNAME/myapp:latest
             echo "PULL"
             echo "RM"
-            docker run -dp 8088:8088 $DOCKER_USERNAME/myapp:latest
+            docker run -d  docker run -d --name staging-container -p 8088:8088 $DOCKER_USERNAME/myapp:latest
             echo "run"
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
