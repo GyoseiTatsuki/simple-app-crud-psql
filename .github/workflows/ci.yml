@@ -59,34 +59,4 @@ jobs:
           LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa admin_@4.233.150.126 'bash /tmp/deploy.sh'
-
-
-    #   - name: Deploy to remote server
-    #     uses: appleboy/ssh-action@v0.1.4
-    #     with:
-    #       host: ${{ secrets.REMOTE_HOST }}
-    #       username: ${{ secrets.REMOTE_USER }}
-    #       key: ${{ secrets.SSH_PRIVATE_KEY }}  # Utilisation de la clé privée
-    #       script: |
-    #         echo "Logging into Docker..."
-    #         docker login -u $DOCKER_USERNAME -p $DOCKER_TOKEN
-    #         docker pull $DOCKER_USERNAME/myapp:latest
-    #         docker stop myapp || true
-    #         docker rm myapp || true
-    #         docker run -d --name myapp -p 80:80 $DOCKER_USERNAME/myapp:latest
-    #     env:
-    #       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-    #       DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-
-
-    # ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pem admin_@4.233.150.126 "echo 'Connected to VM!'"
-    #         echo "Logging into Docker..."
-    #         docker login -u $DOCKER_USERNAME -p $DOCKER_TOKEN
-    #         echo "Logging into Docker OK"
-    #         docker pull $DOCKER_USERNAME/myapp:latest
-    #         echo "PULL"
-    #         docker stop myapp || true
-    #         echo "STOP"
-    #         docker rm myapp || true
-    #         echo "RM"
-    #         docker run -d --name myapp -p 80:80 $DOCKER_USERNAME/myapp:latest
+        
