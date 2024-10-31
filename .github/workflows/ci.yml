@@ -17,7 +17,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
-          token: ${{ secrets.DOCKER_TOKEN }}  # Utilisation du token au lieu du mot de passe
+          password: ${{ secrets.DOCKER_TOKEN }}  # Utilisation du token au lieu du mot de passe
 
       - name: Build Docker image
         run: docker build -t myapp:latest .
