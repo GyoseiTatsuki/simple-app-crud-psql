@@ -42,21 +42,24 @@ jobs:
           chmod 600 ~/.ssh/id_rsa.pem
 
       - name: Connect to VM via SSH
-        run: |
-            export DOCKER_USERNAME=$DOCKER_USERNAME
-            export DOCKER_TOKEN=$DOCKER_TOKEN
-            ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa.pem admin_@4.233.150.126 "echo 'Connected to VM!'"
-                echo "Logging into Docker..."
-                docker login -u $DOCKER_USERNAME -p $DOCKER_TOKEN
-                echo "Logging into Docker OK"
-                docker pull $DOCKER_USERNAME/myapp:latest
-                echo "PULL"
-                 docker stop myapp || true
-                 echo "STOP"
-                 docker rm myapp || true
-                 echo "RM"
-                 docker run -d --name myapp -p 8088:8088 $DOCKER_USERNAME/myapp:latest
-                 echo "run"
+        script:
+         - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -          # Ajoute la clé SSH
+         - export DOCKER_USERNAME=$DOCKER_USERNAME                   # Exporte les variables Docker
+         - export DOCKER_TOKEN=$DOCKER_TOKEN
+         - ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa admin_@4.233.150.126 << EOF
+            echo 'Connected to VM!'
+            echo "Logging into Docker..."
+            echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
+            echo "Logging into Docker OK"
+            docker pull $DOCKER_USERNAME/myapp:latest
+            echo "PULL"
+            docker stop myapp || true
+            echo "STOP"
+            docker rm myapp || true
+            echo "RM"
+            docker run -d --name myapp -p 8088:8088 $DOCKER_USERNAME/myapp:latest
+            echo "RUN"
+        EOF
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
