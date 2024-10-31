@@ -18,6 +18,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
+
       - name: Build Docker image
         run: docker build -t myapp:latest .
 
@@ -26,7 +27,7 @@ jobs:
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
-        
+
   deploy:
     needs: build  # Lance ce job après le job build
     runs-on: ubuntu-latest
@@ -38,31 +39,11 @@ jobs:
       - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa.pem
-          chmod 600 ~/.ssh/id_rsa.pem
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
-      - name: Connect to VM via SSH
-        script:
-         - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -          # Ajoute la clé SSH
-         - export DOCKER_USERNAME=$DOCKER_USERNAME                   # Exporte les variables Docker
-         - export DOCKER_TOKEN=$DOCKER_TOKEN
-         - ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa admin_@4.233.150.126 << EOF
-            echo 'Connected to VM!'
-            echo "Logging into Docker..."
-            echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
-            echo "Logging into Docker OK"
-            docker pull $DOCKER_USERNAME/myapp:latest
-            echo "PULL"
-            docker stop myapp || true
-            echo "STOP"
-            docker rm myapp || true
-            echo "RM"
-            docker run -d --name myapp -p 8088:8088 $DOCKER_USERNAME/myapp:latest
-            echo "RUN"
-        EOF
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      - name: Ru
+
     #   - name: Deploy to remote server
     #     uses: appleboy/ssh-action@v0.1.4
     #     with:
