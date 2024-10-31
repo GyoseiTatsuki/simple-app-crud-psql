@@ -46,22 +46,19 @@ jobs:
         run: |
           echo '#!/bin/bash' > deploy.sh
           echo 'echo "Logging into Docker..."' >> deploy.sh
-          echo 'echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin' >> deploy.sh
-          echo 'sudo docker pull $DOCKER_USERNAME/myapp:latest' >> deploy.sh
+          echo 'echo "$LC_DOCKER_TOKEN" | docker login -u "$LC_DOCKER_USERNAME" --password-stdin' >> deploy.sh
+          echo 'sudo docker pull $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
           echo 'sudo docker stop myapp || true' >> deploy.sh
           echo 'sudo docker rm myapp || true' >> deploy.sh
-          echo 'sudo docker run -d --name myapp -p 8088:8088 $DOCKER_USERNAME/myapp:latest' >> deploy.sh
+          echo 'sudo docker run -d --name myapp -p 8088:8088 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
           chmod +x deploy.sh
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh admin_@4.233.150.126:/tmp/deploy.sh
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-          
+        
       - name: Run Deploy Script on Remote Server
         env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa admin_@4.233.150.126 'bash /tmp/deploy.sh'
+          LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN-i ~/.ssh/id_rsa admin_@4.233.150.126 'bash /tmp/deploy.sh'
 
 
     #   - name: Deploy to remote server
