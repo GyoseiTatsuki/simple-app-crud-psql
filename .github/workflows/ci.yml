@@ -68,7 +68,7 @@ jobs:
             echo "Running the new container..."
             docker run -d --name myapp -p 8088:8088 "${DOCKER_USERNAME}/myapp:latest" || { echo 'Failed to run container'; exit 1; }
             echo "Container is running"
-          EOF
+           EOF
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
