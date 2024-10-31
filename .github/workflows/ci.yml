@@ -32,19 +32,32 @@ jobs:
     runs-on: ubuntu-latest
         
     steps:
-      - name: Deploy to remote server
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}  # Utilisation de la clé privée
-          script: |
-            echo "Logging into Docker..."
-            docker login -u $DOCKER_USERNAME -p $DOCKER_TOKEN
-            docker pull $DOCKER_USERNAME/myapp:latest
-            docker stop myapp || true
-            docker rm myapp || true
-            docker run -d --name myapp -p 80:80 $DOCKER_USERNAME/myapp:latest
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa.pem
+          chmod 600 ~/.ssh/id_rsa.pem
+
+      - name: Connect to VM via SSH
+        run: |
+          ssh -i ~/.ssh/id_rsa.pem admin_@4.233.150.126 "echo 'Connected to VM!'"
+          
+    #   - name: Deploy to remote server
+    #     uses: appleboy/ssh-action@v0.1.4
+    #     with:
+    #       host: ${{ secrets.REMOTE_HOST }}
+    #       username: ${{ secrets.REMOTE_USER }}
+    #       key: ${{ secrets.SSH_PRIVATE_KEY }}  # Utilisation de la clé privée
+    #       script: |
+    #         echo "Logging into Docker..."
+    #         docker login -u $DOCKER_USERNAME -p $DOCKER_TOKEN
+    #         docker pull $DOCKER_USERNAME/myapp:latest
+    #         docker stop myapp || true
+    #         docker rm myapp || true
+    #         docker run -d --name myapp -p 80:80 $DOCKER_USERNAME/myapp:latest
+    #     env:
+    #       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+    #       DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
