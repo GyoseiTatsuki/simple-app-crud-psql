@@ -31,7 +31,7 @@ jobs:
   deploy:
     needs: build  # Lance ce job après le job build
     runs-on: ubuntu-latest
-        
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -42,7 +42,24 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: Ru
+      - name: Copy Deploy Script to Remote Server
+        run: |
+          echo '#!/bin/bash' > deploy.sh
+          echo 'echo "Logging into Docker..."' >> deploy.sh
+          echo 'echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin' >> deploy.sh
+          echo 'docker pull $DOCKER_USERNAME/myapp:latest' >> deploy.sh
+          echo 'docker stop myapp || true' >> deploy.sh
+          echo 'docker rm myapp || true' >> deploy.sh
+          echo 'docker run -d --name myapp -p 8088:8088 $DOCKER_USERNAME/myapp:latest' >> deploy.sh
+          chmod +x deploy.sh
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh admin@4.233.150.126:/tmp/deploy.sh
+
+      - name: Run Deploy Script on Remote Server
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa admin@4.233.150.126 'bash /tmp/deploy.sh'
+
 
     #   - name: Deploy to remote server
     #     uses: appleboy/ssh-action@v0.1.4
