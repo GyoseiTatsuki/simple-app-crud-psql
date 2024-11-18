@@ -12,74 +12,73 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout code  # Étape pour récupérer le code source du repository
         uses: actions/checkout@v2
 
-      - name: Login to Docker Hub
+      - name: Login to Docker Hub  # Se connecter à Docker Hub pour pouvoir pousser l'image
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-      - name: Build Docker image
+      - name: Build Docker image  # Construire l'image Docker à partir du Dockerfile
         run: docker build -t myapp:latest .
 
-      - name: Tag Docker image
+      - name: Tag Docker image  # Taguer l'image Docker avec le nom du repository utilisateur
         run: docker tag myapp:latest ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
-      - name: Push Docker image
+      - name: Push Docker image  # Pousser l'image Docker taguée vers Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
   deploy_prod:
-      needs: build
-      runs-on: ubuntu-latest
-      if: startsWith(github.ref, 'refs/tags/')
-
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v2
-
-        - name: Set up SSH key
-          run: |
-            mkdir -p ~/.ssh
-            echo "${{ secrets.SSH_PRIVATE_KEY_PROD }}" > ~/.ssh/id_rsa
-            chmod 600 ~/.ssh/id_rsa
-
-        - name: Copy Deploy Script to Remote Server (Prod)
-          run: |
-            echo '#!/bin/bash' > deploy.sh
-            echo 'echo "Logging into Docker..."' >> deploy.sh
-            echo 'echo "$LC_DOCKER_TOKEN" | docker login -u "$LC_DOCKER_USERNAME" --password-stdin' >> deploy.sh
-            echo 'sudo docker pull $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
-            echo 'sudo docker stop myapp || true' >> deploy.sh
-            echo 'sudo docker rm myapp || true' >> deploy.sh
-            echo 'sudo docker run -d --name myapp -p 8080:8080 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
-            chmod +x deploy.sh
-            scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.80.212:/tmp/deploy.sh
-          
-        - name: Run Deploy Script on Remote Server (Prod)
-          env:
-            LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-            LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-          run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@20.19.80.212 'bash /tmp/deploy.sh'
-
-
-  deploy_labo:
-    needs: build
+    needs: build  # Ce job dépend du succès du job 'build'
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/')  # Exécution uniquement si un tag est poussé
 
     steps:
-      - name: Checkout code
+      - name: Checkout code  # Récupérer le code source du repository pour la configuration du serveur
         uses: actions/checkout@v2
 
-      - name: Set up SSH key
+      - name: Set up SSH key  # Configurer la clé SSH pour se connecter au serveur de production
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_PROD }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Copy Deploy Script to Remote Server (Prod)  # Créer un script de déploiement et le copier sur le serveur de production
+        run: |
+          echo '#!/bin/bash' > deploy.sh
+          echo 'echo "Logging into Docker..."' >> deploy.sh
+          echo 'echo "$LC_DOCKER_TOKEN" | docker login -u "$LC_DOCKER_USERNAME" --password-stdin' >> deploy.sh
+          echo 'sudo docker pull $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
+          echo 'sudo docker stop myapp || true' >> deploy.sh
+          echo 'sudo docker rm myapp || true' >> deploy.sh
+          echo 'sudo docker run -d --name myapp -p 8080:8080 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
+          chmod +x deploy.sh
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.80.212:/tmp/deploy.sh
+
+      - name: Run Deploy Script on Remote Server (Prod)  # Exécuter le script de déploiement sur le serveur de production
+        env:
+          LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@20.19.80.212 'bash /tmp/deploy.sh'
+
+  deploy_labo:
+    needs: build  # Ce job dépend du succès du job 'build'
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  # Exécution uniquement sur la branche 'main'
+
+    steps:
+      - name: Checkout code  # Récupérer le code source du repository pour le déploiement sur le serveur labo
+        uses: actions/checkout@v2
+
+      - name: Set up SSH key  # Configurer la clé SSH pour se connecter au serveur de labo
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: Copy Deploy Script to Remote Server (Labo)
+      - name: Copy Deploy Script to Remote Server (Labo)  # Créer un script de déploiement et le copier sur le serveur de labo
         run: |
           echo '#!/bin/bash' > deploy.sh
           echo 'echo "Logging into Docker..."' >> deploy.sh
@@ -90,11 +89,9 @@ jobs:
           echo 'sudo docker run -d --name myapp -p 8088:8088 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
           chmod +x deploy.sh
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.81.140:/tmp/deploy.sh
-        
-      - name: Run Deploy Script on Remote Server (Labo)
+
+      - name: Run Deploy Script on Remote Server (Labo)  # Exécuter le script de déploiement sur le serveur de labo
         env:
           LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@20.19.81.140 'bash /tmp/deploy.sh'
-
-  
