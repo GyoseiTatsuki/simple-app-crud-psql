@@ -13,6 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: List files in project/db/resources
+        run: |
+          ls -l project/db/resources
+
+
       - name: Set up Postgres configuration
         run: |
           # Remplace les valeurs dans le fichier de configuration dans le répertoire 'configs'
