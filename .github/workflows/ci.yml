@@ -64,7 +64,7 @@ jobs:
   deploy_prod:
     needs: build  # Lance ce job après le job build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/*')  # Limite ce job aux tags commençant par 'v'
+    if: startsWith(github.ref, 'refs/tags/*')
 
     steps:
       - name: Checkout code
