@@ -33,7 +33,7 @@ jobs:
   deploy_labo:
     needs: build  # Lance ce job après le job build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  # Limite ce job à la branche main
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
