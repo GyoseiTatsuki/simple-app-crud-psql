@@ -8,7 +8,7 @@ Il y a deux déploiement :
         - Serveur de développement qui quand un push est fait sur la branche "main" récupère l'image docker du projet et la déploie.
     - Production :
         - Serveur de Production qui récupère l'image quand un nouveau tag est mis.
+
 Garnier Kylian
 
-Avancement : pour le moment quand un push est fait sur main préprod est mis à jour .
 
