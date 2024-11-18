@@ -74,22 +74,22 @@ jobs:
           LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@20.19.80.212 'bash /tmp/deploy.sh'
 
-  deploy_labo:
+  deploy_dev:
     needs: build  # Ce job dépend du succès du job 'build'
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'  # Exécution uniquement sur la branche 'main'
 
     steps:
-      - name: Checkout code  # Récupérer le code source du repository pour le déploiement sur le serveur labo
+      - name: Checkout code  # Récupérer le code source du repository pour le déploiement sur le serveur dev
         uses: actions/checkout@v2
 
-      - name: Set up SSH key  # Configurer la clé SSH pour se connecter au serveur de labo
+      - name: Set up SSH key  # Configurer la clé SSH pour se connecter au serveur de dev
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: Copy Deploy Script to Remote Server (Labo)  # Créer un script de déploiement et le copier sur le serveur de labo
+      - name: Copy Deploy Script to Remote Server (dev)  # Créer un script de déploiement et le copier sur le serveur de dev
         run: |
           echo '#!/bin/bash' > deploy.sh
           echo 'echo "Logging into Docker..."' >> deploy.sh
@@ -101,7 +101,7 @@ jobs:
           chmod +x deploy.sh
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.81.140:/tmp/deploy.sh
 
-      - name: Run Deploy Script on Remote Server (Labo)  # Exécuter le script de déploiement sur le serveur de labo
+      - name: Run Deploy Script on Remote Server (dev)  # Exécuter le script de déploiement sur le serveur de dev
         env:
           LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
