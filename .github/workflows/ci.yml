@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main  # Lance le workflow pour chaque push sur la branche main
+    tags:
+      - 'v*'  # Lance ce workflow pour les pushes avec des tags commençant par 'v' (ex: v1.0, v2.1)
 
 jobs:
   build:
@@ -28,9 +30,10 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
-  deploy:
+  deploy_labo:
     needs: build  # Lance ce job après le job build
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  # Limite ce job à la branche main
 
     steps:
       - name: Checkout code
@@ -42,7 +45,7 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: Copy Deploy Script to Remote Server
+      - name: Copy Deploy Script to Remote Server (Labo)
         run: |
           echo '#!/bin/bash' > deploy.sh
           echo 'echo "Logging into Docker..."' >> deploy.sh
@@ -54,9 +57,41 @@ jobs:
           chmod +x deploy.sh
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.81.140:/tmp/deploy.sh
         
-      - name: Run Deploy Script on Remote Server
+      - name: Run Deploy Script on Remote Server (Labo)
         env:
           LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@20.19.81.140 'bash /tmp/deploy.sh'
+
+  deploy_prod:
+    needs: build  # Lance ce job après le job build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')  # Limite ce job aux tags commençant par 'v'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_PROD }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Copy Deploy Script to Remote Server (Prod)
+        run: |
+          echo '#!/bin/bash' > deploy.sh
+          echo 'echo "Logging into Docker..."' >> deploy.sh
+          echo 'echo "$LC_DOCKER_TOKEN" | docker login -u "$LC_DOCKER_USERNAME" --password-stdin' >> deploy.sh
+          echo 'sudo docker pull $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
+          echo 'sudo docker stop myapp || true' >> deploy.sh
+          echo 'sudo docker rm myapp || true' >> deploy.sh
+          echo 'sudo docker run -d --name myapp -p 8080:8080 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
+          chmod +x deploy.sh
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.80.212:/tmp/deploy.sh
         
+      - name: Run Deploy Script on Remote Server (Prod)
+        env:
+          LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@20.19.80.212 'bash /tmp/deploy.sh'
