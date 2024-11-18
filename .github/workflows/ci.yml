@@ -32,7 +32,7 @@ jobs:
       
       - name: Replace database in config file
         run: |
-          sed -i 's/^database=.*$/database=new_database/' ./project/api/db/ressources/configs/database.ini
+          sed -i 's/^database=.*$/database=new_database/' /project/api/db/ressources/configs/database.ini
 
   deploy_prod:
     needs: build  # Ce job dépend du succès du job 'build'
