@@ -15,12 +15,12 @@ jobs:
       - name: Replace database in config file for prod
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          sed -i 's/^database=.*$/database=postgres/' /project/db/resources/database.ini
+          sed -i 's/^database=.*$/database=postgres/' ./project/db/resources/database.ini
 
       - name: Replace database in config file for develop
         if: github.ref == 'refs/heads/main'
         run: |
-          sed -i 's/^database=.*$/database=messages/' /project/db/resources/database.ini
+          sed -i 's/^database=.*$/database=messages/' ./project/db/resources/database.ini
 
       - name: Checkout code  # Étape pour récupérer le code source du repository
         uses: actions/checkout@v2
