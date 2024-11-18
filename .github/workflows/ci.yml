@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Debug: List all files in the project
+      - name: List all files in the project
         run: ls -R .
 
       - name: Replace database in config file for prod
