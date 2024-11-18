@@ -29,6 +29,9 @@ jobs:
 
       - name: Push Docker image  # Pousser l'image Docker taguée vers Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
+
+      - name: Debug: List files
+        run: ls -R ./project/db/resources/configs
       
       - name: Replace database in config file
         run: |
