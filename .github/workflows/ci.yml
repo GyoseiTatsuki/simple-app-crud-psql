@@ -28,7 +28,9 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
-      
+      - name: Debug Git Reference
+        run: echo "GitHub ref is: $GITHUB_REF"
+
 
   deploy_labo:
     needs: build
@@ -38,7 +40,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        steps:
 
       - name: Set up SSH key
         run: |
