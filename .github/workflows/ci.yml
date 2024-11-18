@@ -29,6 +29,10 @@ jobs:
 
       - name: Push Docker image  # Pousser l'image Docker taguée vers Docker Hub
         run: docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
+      
+      - name: Replace database in config file
+        run: |
+          sed -i 's/^database=.*$/database=new_database/' config.ini
 
   deploy_prod:
     needs: build  # Ce job dépend du succès du job 'build'
