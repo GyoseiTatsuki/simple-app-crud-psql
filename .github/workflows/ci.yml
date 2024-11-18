@@ -52,7 +52,7 @@ jobs:
           echo 'sudo docker rm myapp || true' >> deploy.sh
           echo 'sudo docker run -d --name myapp -p 8088:8088 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
           chmod +x deploy.sh
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh admin_@4.233.150.126:/tmp/deploy.sh
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.81.140:/tmp/deploy.sh
         
       - name: Run Deploy Script on Remote Server
         env:
