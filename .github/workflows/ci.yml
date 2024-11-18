@@ -3,7 +3,7 @@ name: Build and Deploy Docker
 on:
   push:
     branches:
-      - main  # Lance le workflow pour chaque push sur la branche main
+      - main  
     tags:
       - 'v*'  # Lance ce workflow pour les pushes avec des tags commençant par 'v' (ex: v1.0, v2.1)
 
