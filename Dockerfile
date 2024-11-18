@@ -7,7 +7,7 @@ WORKDIR /opt/application/flask
 
 RUN apt-get update
 RUN pip install -r requirements.txt
-ENV DATABASE_HOST projet-ci-cd.postgres.database.azure.com
+ENV DATABASE_HOST cicd-projet-cicd-gkylian.postgres.database.azure.com
 EXPOSE 8088
 
 ENTRYPOINT ["gunicorn", "-b", ":8088"]
