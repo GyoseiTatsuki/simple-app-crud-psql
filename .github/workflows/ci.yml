@@ -53,7 +53,7 @@ jobs:
           echo 'sudo docker pull $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
           echo 'sudo docker stop myapp || true' >> deploy.sh
           echo 'sudo docker rm myapp || true' >> deploy.sh
-          echo 'sudo docker run -d --name myapp -p 8080:8080 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
+          echo 'sudo docker run -d --name myapp -p 8088:8088 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
           chmod +x deploy.sh
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.80.212:/tmp/deploy.sh
 
