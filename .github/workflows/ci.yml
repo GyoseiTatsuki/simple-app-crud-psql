@@ -28,8 +28,6 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/myapp:latest
 
-      - name: Debug Git Reference
-        run: echo "GitHub ref is: $GITHUB_REF"
 
 
   deploy_labo:
