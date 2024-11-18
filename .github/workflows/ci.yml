@@ -13,16 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: List files in project/db/resources
+      - name: Replace .ini values 
         run: |
-          ls -l project/db/resources
-
-
-      - name: Set up Postgres configuration
-        run: |
-          # Remplace les valeurs dans le fichier de configuration dans le répertoire 'configs'
-          sed -i 's|password=.*|password=${{ secrets.DB_PASSWORD }}|' project/db/resources/configs/database.ini
-          sed -i 's|database=.*|database=${{ secrets.DB_NAME }}|' project/db/resources/configs/database.ini
+        sed -i 's/^database=.*/database=${{ secrets.DATABASE }}/' project/db/resources/configs/database.ini
+        sed -i 's/^password=.*/password=${{ secrets.PASSWORD }}/' project/db/resources/configs/database.ini
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
