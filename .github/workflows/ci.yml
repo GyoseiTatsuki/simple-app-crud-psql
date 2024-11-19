@@ -83,19 +83,19 @@ jobs:
           GITHUB_REF: ${{ github.ref }}
 
       # Configuration de la clé SSH pour la connexion au serveur
-       - name: Set up SSH key for development
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-      if: github.ref == 'refs/heads/main'
+     - name: Set up SSH key for development
+       run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        if: github.ref == 'refs/heads/main'
 
     # Configuration de la clé SSH pour la connexion au serveur (prod)
     - name: Set up SSH key for production
       run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PROD_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY_PROD }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
       if: startsWith(github.ref, 'refs/tags/')
 
       # Créer et transférer le script de déploiement sur le serveur
