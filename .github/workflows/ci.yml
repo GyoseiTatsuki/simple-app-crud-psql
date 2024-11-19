@@ -117,3 +117,4 @@ jobs:
           LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@${{ env.SERVER_IP }} 'bash /tmp/deploy.sh'
+      #commentaire test tags
