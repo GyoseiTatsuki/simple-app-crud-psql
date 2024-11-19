@@ -56,8 +56,6 @@ jobs:
   deploy:
   needs: build  # Ce job dépend du succès du job 'build'
   runs-on: ubuntu-latest
-  if: |
-    startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
 
   steps:
     # Étape pour récupérer le code source
