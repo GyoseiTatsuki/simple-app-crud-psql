@@ -53,68 +53,62 @@ jobs:
           docker tag ${{ env.IMAGE_NAME }}:latest ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
 
-  deploy_prod:
-    needs: build  # Ce job dépend du succès du job 'build'
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')  # Exécution uniquement si un tag est poussé
+  deploy:
+  needs: build  # Ce job dépend du succès du job 'build'
+  runs-on: ubuntu-latest
+  if: |
+    startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
 
-    steps:
-      - name: Checkout code  # Récupérer le code source du repository pour la configuration du serveur
-        uses: actions/checkout@v2
+  steps:
+    # Étape pour récupérer le code source
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up SSH key  # Configurer la clé SSH pour se connecter au serveur de production
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY_PROD }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+    # Définition des variables pour l'environnement (prod ou dev)
+    - name: Set environment variables
+      run: |
+        if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
+          echo "ENVIRONMENT=develop" >> $GITHUB_ENV
+          echo "DATABASE_NAME=messages" >> $GITHUB_ENV
+          echo "SERVER_IP=20.19.81.140" >> $GITHUB_ENV
+          echo "SSH_KEY=${{ secrets.SSH_PRIVATE_KEY }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=myappdev" >> $GITHUB_ENV  # Nom de l'image pour le dev
+        elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          echo "ENVIRONMENT=production" >> $GITHUB_ENV
+          echo "DATABASE_NAME=postgres" >> $GITHUB_ENV
+          echo "SERVER_IP=20.19.80.212" >> $GITHUB_ENV
+          echo "SSH_KEY=${{ secrets.SSH_PRIVATE_KEY_PROD }}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=myappprod" >> $GITHUB_ENV  # Nom de l'image pour la prod
+        else
+          echo "Unsupported environment."
+          exit 1
+        fi
+      env:
+        GITHUB_REF: ${{ github.ref }}
 
-      - name: Copy Deploy Script to Remote Server (Prod)  # Créer un script de déploiement et le copier sur le serveur de production
-        run: |
-          echo '#!/bin/bash' > deploy.sh
-          echo 'echo "Logging into Docker..."' >> deploy.sh
-          echo 'echo "$LC_DOCKER_TOKEN" | docker login -u "$LC_DOCKER_USERNAME" --password-stdin' >> deploy.sh
-          echo 'sudo docker pull $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
-          echo 'sudo docker stop myapp || true' >> deploy.sh
-          echo 'sudo docker rm myapp || true' >> deploy.sh
-          echo 'sudo docker run -d --name myapp -p 8088:8088 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
-          chmod +x deploy.sh
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.80.212:/tmp/deploy.sh
+    # Configuration de la clé SSH pour la connexion au serveur
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ env.SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
 
-      - name: Run Deploy Script on Remote Server (Prod)  # Exécuter le script de déploiement sur le serveur de production
-        env:
-          LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@20.19.80.212 'bash /tmp/deploy.sh'
+    # Créer et transférer le script de déploiement sur le serveur
+    - name: Copy Deploy Script to Remote Server
+      run: |
+        echo '#!/bin/bash' > deploy.sh
+        echo 'echo "Logging into Docker..."' >> deploy.sh
+        echo 'echo "$LC_DOCKER_TOKEN" | docker login -u "$LC_DOCKER_USERNAME" --password-stdin' >> deploy.sh
+        echo 'sudo docker pull $LC_DOCKER_USERNAME/${{ env.IMAGE_NAME }}:latest' >> deploy.sh  # Utilisation de IMAGE_NAME
+        echo 'sudo docker stop ${{ env.IMAGE_NAME }} || true' >> deploy.sh
+        echo 'sudo docker rm ${{ env.IMAGE_NAME }} || true' >> deploy.sh
+        echo 'sudo docker run -d --name ${{ env.IMAGE_NAME }} -p 8088:8088 $LC_DOCKER_USERNAME/${{ env.IMAGE_NAME }}:latest' >> deploy.sh  # Utilisation de IMAGE_NAME
+        chmod +x deploy.sh
+        scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@${{ env.SERVER_IP }}:/tmp/deploy.sh
 
-  deploy_dev:
-    needs: build  # Ce job dépend du succès du job 'build'
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  # Exécution uniquement sur la branche 'main'
-
-    steps:
-      - name: Checkout code  # Récupérer le code source du repository pour le déploiement sur le serveur 
-        uses: actions/checkout@v2
-
-      - name: Set up SSH key  # Configurer la clé SSH pour se connecter au serveur de dev
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-      - name: Copy Deploy Script to Remote Server (dev)  # Créer un script de déploiement et le copier sur le serveur de dev
-        run: |
-          echo '#!/bin/bash' > deploy.sh
-          echo 'echo "Logging into Docker..."' >> deploy.sh
-          echo 'echo "$LC_DOCKER_TOKEN" | docker login -u "$LC_DOCKER_USERNAME" --password-stdin' >> deploy.sh
-          echo 'sudo docker pull $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
-          echo 'sudo docker stop myapp || true' >> deploy.sh
-          echo 'sudo docker rm myapp || true' >> deploy.sh
-          echo 'sudo docker run -d --name myapp -p 8088:8088 $LC_DOCKER_USERNAME/myapp:latest' >> deploy.sh
-          chmod +x deploy.sh
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa deploy.sh azureuser@20.19.81.140:/tmp/deploy.sh
-
-      - name: Run Deploy Script on Remote Server (dev)  # Exécuter le script de déploiement sur le serveur de dev
-        env:
-          LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-        run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@20.19.81.140 'bash /tmp/deploy.sh'
+    # Exécuter le script de déploiement sur le serveur
+    - name: Run Deploy Script on Remote Server
+      env:
+        LC_DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        LC_DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      run: ssh -o StrictHostKeyChecking=no -o SendEnv=LC_DOCKER_USERNAME -o SendEnv=LC_DOCKER_TOKEN -i ~/.ssh/id_rsa azureuser@${{ env.SERVER_IP }} 'bash /tmp/deploy.sh'
