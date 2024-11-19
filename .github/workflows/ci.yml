@@ -92,7 +92,7 @@ jobs:
     if: github.ref == 'refs/heads/main'  # Exécution uniquement sur la branche 'main'
 
     steps:
-      - name: Checkout code  # Récupérer le code source du repository pour le déploiement sur le serveur dev
+      - name: Checkout code  # Récupérer le code source du repository pour le déploiement sur le serveur 
         uses: actions/checkout@v2
 
       - name: Set up SSH key  # Configurer la clé SSH pour se connecter au serveur de dev
